@@ -8,7 +8,10 @@ const keys = require('../config/keys');
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey = keys.secretOrKey;
-
+/*
+	Every API that requires authorization will go through this step first
+	it checks for a token, if there is a valid token & it belongs to an admin then it will proceed to the API 
+*/
 module.exports = (passport) => {
 	passport.use(
 		new JwtStrategy(opts, (jwt_payload, done) => {
