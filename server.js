@@ -25,6 +25,7 @@ if (process.env.NODE_ENV !== 'production') {
 require('./server/config/passport')(passport);
 require('./server/routes/admin.routes')(app);
 require('./server/routes/store.routes')(app);
+require('./server/routes/category.routes')(app);
 
 const serverPort = process.env.PORT || 5003
 server.listen(serverPort, () => console.log(`Server has started on port: ${serverPort}`));
