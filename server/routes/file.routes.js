@@ -7,14 +7,24 @@ const fileFilter = (req, file, cb) => {
 		cb('file type must be ( .jpeg , .png , .jpg)', false);
 	}
 };
-//initializing upload
-const upload = multer({
-	dest: './uploads/temp',
+/*
+ initializing multer, 
+ @OPTIMIZATION max image size is 1080 * 1080
+
+ all images are uploaded to temporary folder, and then after approving they will be moved to another folder
+*/
+const storage = multer.diskStorage({
+	destination: './uploads/temp',
 	filename: (req, file, cb) => {
-		cb(null, `${Date.now()}${file.originalname}`);
-	},
+		console.log('file :>> ', file);
+		cb(null, `${Date.now()}${file.mimetype.replace('image/', '.')}`);
+	}
+});
+
+const upload = multer({
+	storage,
 	limits: {
-		fileSize: 1600 * 1600
+		fileSize: 1080 * 1080
 	},
 	fileFilter
 });
@@ -24,18 +34,11 @@ module.exports = (app) => {
 	const file = require('../controllers/file.controller');
 	var router = require('express').Router();
 
-	router.get('/images/:file', file.getImageFile);
-	// Upload one image
-	// router.post(
-	// 	'/upload-single',
-	// 	passport.authenticate('jwt', { session: false }),
-	// 	upload.single('recfile'),
-	// 	file.uploadFile
-	// );
+	router.get('/:dir/:file', file.getImageFile);
 
 	router.post(
 		'/upload-multiple',
-		passport.authenticate('jwt', { session: false }),
+		// passport.authenticate('jwt', { session: false }),
 		upload.array('recfile', 10),
 		file.uploadMultiFiles
 	);
