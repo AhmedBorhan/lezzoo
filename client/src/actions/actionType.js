@@ -1,0 +1,5 @@
+export const SET_CURRENT_USER = 'SET_CURRENT_USER';
+export const LOG_IN_LOADING = 'LOG_IN_WAITING';
+export const LOG_IN_SUCCESS = 'LOG_IN_SUCCESS';
+export const LOG_OUT_SUCCESS = 'LOG_OUT_SUCCESS';
+export const SET_ERRORS = 'SET_ERRORS';
