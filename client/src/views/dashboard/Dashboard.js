@@ -1,6 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import { Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { makeStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Drawer from '@material-ui/core/Drawer';
@@ -15,8 +16,10 @@ import ListItemText from '@material-ui/core/ListItemText';
 import IconButton from '@material-ui/core/IconButton';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import MenuIcon from '@material-ui/icons/Menu';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import routes from '../../router/routes';
+import { logoutUser } from '../../actions/authAction';
 
 const drawerWidth = 240;
 
@@ -101,6 +104,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Dashboard(props) {
 	const classes = useStyles();
+	const dispatch = useDispatch();
 	const [ open, setOpen ] = React.useState(true);
 	const handleDrawerOpen = () => {
 		setOpen(true);
@@ -108,6 +112,15 @@ export default function Dashboard(props) {
 	const handleDrawerClose = () => {
 		setOpen(false);
 	};
+
+	const logout = (
+		<ListItem button onClick={() => dispatch(logoutUser())}>
+			<ListItemIcon>
+					<ExitToAppIcon />
+			</ListItemIcon>
+			<ListItemText primary="Logout" disableTypography={true} />
+		</ListItem>
+	);
 
 	return (
 		<div className={classes.root}>
@@ -147,15 +160,16 @@ export default function Dashboard(props) {
 						if (prop.layout !== '/nav') return null;
 						return (
 							<Link to={prop.path} className={classes.item} activeClassName="active" key={key}>
-                <ListItem button>
-                  <ListItemIcon>
-                    <prop.icon />
-                  </ListItemIcon>
-                  <ListItemText primary={prop.name} />
-                </ListItem>
+								<ListItem button>
+									<ListItemIcon>
+										<prop.icon />
+									</ListItemIcon>
+									<ListItemText primary={prop.name} />
+								</ListItem>
 							</Link>
 						);
 					})}
+					{logout}
 				</List>
 			</Drawer>
 			<main className={classes.content}>

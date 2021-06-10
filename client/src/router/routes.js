@@ -14,6 +14,7 @@ const dashboardRoutes = [
 		icon: StoreMallDirectoryIcon,
 		component: StoreView,
 		layout: '/nav',
+		privilage: 'admin'
 	},
   {
 		path: '/items',
@@ -21,12 +22,14 @@ const dashboardRoutes = [
 		icon: ShoppingCartIcon,
 		component: ItemsView,
 		layout: '/nav',
+		privilage: 'admin'
 	},
 	{
 		path: '/add-store',
 		name: 'Add Store',
 		component: AddStore,
 		layout: '/',
+		privilage: 'admin'
 	},
 ];
 
