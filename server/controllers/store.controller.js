@@ -128,9 +128,9 @@ exports.getStore = async (req, res) => {
 	try {
 		let store = await Store.findOne({
 			where: {
-				[Op.and]: [ { item_id: id } ]
+				[Op.and]: [ { store_id: id } ]
 			},
-			include: [ { model: Category, as: 'category', attributes: [ 'name' ] } ]
+			include: [ { model: Category, as: 'categories' } ]
 		});
 		if (!store) {
 			return res.status(404).json({
@@ -157,7 +157,7 @@ exports.deleteStore = async (req, res) => {
 	const id = req.params.id;
 	try {
 		const num = await Store.destroy({
-			where: { item_id: id }
+			where: { store_id: id }
 		});
 		if (num == 1) {
 			return res.json({

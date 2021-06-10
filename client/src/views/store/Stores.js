@@ -10,7 +10,13 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import { fetchStores } from '../../actions/storeAction';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+import { fetchStores, deleteStore } from '../../actions/storeAction';
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const useStyles = makeStyles((theme) => ({
 	icon: {
@@ -52,26 +58,43 @@ export default function Stores() {
 	const [ rows, setRows ] = useState([]);
 	const [ filter, setFilter ] = useState(initFilter);
 	const [ page, setPage ] = useState({ on: 0, count: 0 });
-
+	const [ snack, setSnack ] = React.useState({
+		open: false,
+		severity: '',
+		message: ''
+	});
 	//Request actions
 	const fetchAction = async () => {
 		const { data, count } = await fetchStores(filter);
 		let newRows = [];
 		data.forEach((element) => {
-			newRows = [ ...newRows, { name: element.name, logo: element.logo } ];
+			newRows = [ ...newRows, { name: element.name, logo: element.logo, id: element.store_id } ];
 		});
 		setRows([ ...rows, ...newRows ]);
-    setPage({ ...page, count });
+		setPage({ ...page, count });
+	};
+
+	const deleteStoreAction = async (id) => {
+		console.log('id :>> ', id);
+		try {
+			await deleteStore(id);
+			let message = 'Store deleted successfully';
+			const newRows = rows.filter(row => row.id !== id)
+			setRows(newRows)
+			handleClick('info', message);
+		} catch (error) {
+			let message = 'Could not sumbit action';
+			if (error.response) message = error.response.data.message;
+			handleClick('error', message);
+		}
 	};
 
 	const loadMore = async () => {
-    console.log('hasssssmore :>> ');
 		const newOffset = rows.length;
 		setFilter({ ...filter, offset: newOffset });
 		await fetchAction({ offset: newOffset }, true);
 	};
 	const handleChangePage = async (event, newPage) => {
-    console.log('change page')
 		if (page.count > rows.length) await loadMore();
 		setPage({ ...page, on: newPage });
 	};
@@ -79,10 +102,25 @@ export default function Stores() {
 	useEffect(() => {
 		fetchAction();
 	}, []);
+
+	const handleClick = (severity, message) => {
+		setSnack({ ...snack, severity, message, open: true });
+	};
+	const handleClose = (event, reason) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		setSnack({ ...snack, open: false });
+	};
 	return (
 		<React.Fragment>
-			<>
+			<div>
 				<div>
+					<Snackbar open={snack.open} autoHideDuration={3000} onClose={handleClose}>
+						<Alert onClose={handleClose} severity={snack.severity}>
+							{snack.message}
+						</Alert>
+					</Snackbar>
 					<Container maxWidth="sm">
 						<Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
 							Stores
@@ -107,13 +145,13 @@ export default function Stores() {
 					</Container>
 				</div>
 				<Container className={classes.cardGrid} maxWidth="md">
-          	<InfiniteScroll
-							dataLength={rows.length}
-							next={handleChangePage}
-							hasMore={rows.length < page.count}
-							loader={<h4>Loading...</h4>}
-						>
-					<Grid container>
+					<InfiniteScroll
+						dataLength={rows.length}
+						next={handleChangePage}
+						hasMore={rows.length < page.count}
+						loader={<h4>Loading...</h4>}
+					>
+						<Grid container >
 							{rows.map((row, index) => (
 								<Grid item key={index} xs={12} sm={6} md={4}>
 									<Card className={classes.card}>
@@ -127,20 +165,20 @@ export default function Stores() {
                     </Typography> */}
 										</CardContent>
 										<CardActions>
-											<Button to={'/items'} size="small">
+											<Link to={`/store/${row.id}`} size="small">
 												View
-											</Button>
-											<Button size="small" color="secondary">
+											</Link>
+											<Button onClick={() =>deleteStoreAction(row.id)} size="small" color="secondary">
 												Delete
 											</Button>
 										</CardActions>
 									</Card>
 								</Grid>
 							))}
-					</Grid>
-          </InfiniteScroll>
+						</Grid>
+					</InfiniteScroll>
 				</Container>
-			</>
+			</div>
 			{/* Footer */}
 			<footer className={classes.footer}>
 				<Typography variant="h6" align="center" gutterBottom>

@@ -12,6 +12,17 @@ export const fetchStores = async (data) => {
 	}
 };
 
+export const fetchOneStore = async (id, data) => {
+	try {
+		const res = await axios.get(`/api/store/all-store/${id}`,{
+			params:data
+		});
+		return res.data;
+	} catch (error) {
+		console.log('there is an error', error);
+		throw error
+	}
+};
 
 export const createStore = async (data) => {
 	try {
