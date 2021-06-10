@@ -29,6 +29,13 @@ require('./server/routes/store.routes')(app);
 require('./server/routes/category.routes')(app);
 require('./server/routes/item.routes')(app);
 
+app.use(express.static(('client/build')));
+
+app.get('/*', function (req, res) {
+  res.sendFile(path.resolve(__dirname, 'client/build', 'index.html'));
+});
+
+
 const serverPort = process.env.PORT || 5003
 server.listen(serverPort, () => console.log(`Server has started on port: ${serverPort}`));
 
