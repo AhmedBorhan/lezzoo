@@ -1,5 +1,5 @@
 const db = require('../models');
-const Item = db.menu_item;
+const Item = db.item;
 const Category = db.category;
 const Op = db.Sequelize.Op;
 
