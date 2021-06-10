@@ -6,7 +6,6 @@ module.exports = (app) => {
 	// Categories
 	router.get('/all-category', passport.authenticate('jwt', { session: false }), category.getAllCategories);
 	router.post('/create-category', passport.authenticate('jwt', { session: false }), category.createCategory);
-	router.post('/update-category/:id', passport.authenticate('jwt', { session: false }), category.updateCategory);
 	router.delete('/delete-category/:id', passport.authenticate('jwt', { session: false }), category.deleteCategory);
 
 	app.use('/api/category', router);

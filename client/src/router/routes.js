@@ -3,12 +3,17 @@ import StoreMallDirectoryIcon from '@material-ui/icons/StoreMallDirectory';
 import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
 
 // core components/views for Admin layout
-import StoreView from '../views/store/Stores'
-import AddStore from '../views/store/AddStore'
-import ItemsView from '../views/items/Items'
+import StoreView from '../views/store/Stores';
+import AddStore from '../views/store/AddStore';
+
+import ItemsView from '../views/items/Items';
+import AddItem from '../views/items/AddItem';
+
+import CategoryView from '../views/category/Categories';
+import AddCategory from '../views/category/AddCategory';
 
 const dashboardRoutes = [
-  {
+	{
 		path: '/',
 		name: 'Stores',
 		icon: StoreMallDirectoryIcon,
@@ -16,7 +21,14 @@ const dashboardRoutes = [
 		layout: '/nav',
 		privilage: 'admin'
 	},
-  {
+		{
+		path: '/add-store',
+		name: 'Add store',
+		component: AddStore,
+		layout: '/',
+		privilage: 'admin'
+	},
+	{
 		path: '/items',
 		name: 'Items',
 		icon: ShoppingCartIcon,
@@ -25,12 +37,26 @@ const dashboardRoutes = [
 		privilage: 'admin'
 	},
 	{
-		path: '/add-store',
-		name: 'Add Store',
-		component: AddStore,
+		path: '/store/:id',
+		name: 'Store categories',
+		component: CategoryView,
 		layout: '/',
 		privilage: 'admin'
 	},
+	{
+		path: '/add-item',
+		name: 'Add Item',
+		component: AddItem,
+		layout: '/',
+		privilage: 'admin'
+	},
+	{
+		path: '/add-category',
+		name: 'Add Category',
+		component: AddCategory,
+		layout: '/',
+		privilage: 'admin'
+	}
 ];
 
 export default dashboardRoutes;

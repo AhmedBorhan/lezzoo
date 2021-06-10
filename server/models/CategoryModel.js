@@ -8,6 +8,9 @@ module.exports = (sequelize) => {
 				primaryKey: true,
 				autoIncrement: true
 			},
+			store_id: {
+				type: Sequelize.INTEGER,
+			},
 			name: {
 				type: Sequelize.STRING
 			},
@@ -18,7 +21,7 @@ module.exports = (sequelize) => {
 		{
 			id: false,
       createdAt: false,
-      updateAt: false
+      updatedAt: false
 		}
 	);
 

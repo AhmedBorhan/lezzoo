@@ -31,11 +31,16 @@ db.admin = require('./AdminModel')(sequelize);
 db.store = require('./StoreModel')(sequelize);
 db.category = require('./CategoryModel')(sequelize);
 db.item = require('./ItemModel')(sequelize);
-db.store_category = require('./StoreCategoryModel')(sequelize);
 
 // Assosiation
-// db.store.hasMany(db.item,{ as:'items', foreignKey: 'store_id' });
-// db.item.belongsTo(db.store,{foreignKey: 'store_id' });
+db.store.hasMany(db.item,{ as:'items', foreignKey: 'store_id' });
+db.item.belongsTo(db.store,{foreignKey: 'store_id' });
+
+db.store.hasMany(db.category,{ as:'categories', foreignKey: 'store_id' });
+db.category.belongsTo(db.store,{foreignKey: 'store_id' });
+
+db.category.hasMany(db.item,{ as:'items', foreignKey: 'category_id' });
+db.item.belongsTo(db.category,{foreignKey: 'category_id' });
 
 // db.item.belongsTo(db.category,{foreignKey: 'category_id' });
 

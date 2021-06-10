@@ -1,139 +1,113 @@
 const db = require('../models');
 const Category = db.category;
 
-
 // PRIVATE ADMIN
 // api/create-category
 exports.createCategory = async (req, res) => {
-	const { title_en, title_ar, title_ku, image } = req.body;
-
-	if (!title_en) {
-		return res.status(400).json({
-			result: 'Fail',
-			message: { en: 'English title is required' }
-		});
-	}
-	//check if the user has permission to proceed
-	if (!req.user.privileges.includes('ADMIN') && !req.user.privileges.includes('CHEF'))
-		return res.status(403).json({
-			result: 'Fail',
-			message: {
-				en: 'Unauthorized'
-			}
-		});
-	try {
-		// Create category
-		const newCategory = {
-			title: JSON.stringify({
-				en: title_en,
-				ar: title_ar || null,
-				ku: title_ku || null
-			}),
-			image
-		};
-		// Save category
-		const data = await Category.create(newCategory);
-		return res.json({
-			result: 'Success',
-			message: { en: 'Admin created successfuly' },
-			data: { ...data.dataValues, title: JSON.parse(data.dataValues.title) }
-		});
-	} catch (error) {
-		console.log('This is error', error);
-		res.status(500).send({
-			message: 'Some error occurred while creating user.'
-		});
-	}
-};
-// PRIVATE ADMIN
-// api/create-category/:id
-exports.updateCategory = async (req, res) => {
-	const { title_en, title_ar, title_ku, image, state } = req.body;
+	const { name, image, store } = req.body;
 	const { id } = req.params;
 
-	if (!title_en || !id) {
-		return res.status(400).json({
+	if (!name || !image) {
+		res.status(400).json({
 			result: 'Fail',
-			message: { en: 'Category id & English title is required' }
+			message: 'Name & Image are required'
 		});
 	}
-	//check if the user has permission to proceed
-	if (!req.user.privileges.includes('ADMIN') && !req.user.privileges.includes('CHEF'))
-		return res.status(403).json({
-			result: 'Fail',
-			message: {
-				en: 'Unauthorized'
-			}
-		});
+
 	try {
 		// Create category
 		const newCategory = {
-			title: JSON.stringify({
-				en: title_en,
-				ar: title_ar || null,
-				ku: title_ku || null
-			}),
-			image,
-			state
+			name,
+			image: image,
+			store_id: store,
 		};
 		console.log(`newCategory`, newCategory);
-		// Save category
-		const data = await Category.update(newCategory, { where: { category_id: id } });
-		return res.json({
-			result: 'Success',
-			message: { en: 'Category updated successfuly' },
-			data: data
-		});
+		// If there is id, that means the category already exist so we update it, else we create a new one
+		if (!id) {
+			// check of the category name is alread taken
+			const duplicateName = await Category.findOne({
+				where: { name }
+			});
+			if (duplicateName) {
+				res.status(400).json({
+					result: 'Fail',
+					message: 'That name already exist'
+				});
+			}
+			const data = await Category.create(newCategory);
+			/** 
+			 * copy the uploaded file from temp directory to images directory.
+			 * then remove the image from temp.
+			**/
+			var target_path = `uploads/images/` + image;
+			var tmp_path = `uploads/temp/` + image;
+			console.log('tmp_path :>> ', tmp_path);
+			var src = fs.createReadStream(tmp_path);
+			var destPath = fs.createWriteStream(target_path);
+			src.pipe(destPath);
+			src.on('error', (err) => {
+				// log error to error log file
+				console.log('err', err);
+			});
+			// Remove image from temp directory
+			fs.unlinkSync(tmp_path);
+			return res.json({
+				result: 'Success',
+				message: 'Category created successfuly',
+				data
+			});
+		} else {
+			const data = await Category.update(newCategory, {
+				where: { category_id: id }
+			});
+			// Retrun success message with the category
+			return res.json({
+				result: 'Success',
+				message: 'Category updated successfuly',
+				data
+			});
+		}
 	} catch (error) {
-		console.log('This is error', error);
 		res.status(500).send({
-			message: 'Some error occurred while creating user.'
+			message: 'Some error occurred while creating category.'
 		});
 	}
 };
 // GET categories
 // api/all-category
 exports.getAllCategories = async (req, res) => {
+	const { store } = req.query;
+
+	var storeCondition = store && store > 0 ? { store_id: store } : null;
+
 	try {
-		let data = await Category.findAll();
-		if (!data) {
+		const { count, rows } = await Category.findAndCountAll({
+			where: {
+				[Op.and]: [ storeCondition ]
+			},
+		});
+		if (!rows) {
 			return res.status(404).json({
 				result: 'Fail',
-				message: {
-					en: 'there is no data'
-				}
+				message: 'there is no data'
 			});
 		}
-		//parse the titles
-		data.forEach((category) => {
-			category.title = JSON.parse(category.title);
-		});
+
 		return res.json({
 			result: 'Success',
-			data: data
+			data: rows,
+			count,
 		});
 	} catch (error) {
-		console.log('error :>> ', error);
 		res.status(500).json({
 			result: 'Fail',
-			message: {
-				en: 'Some error occurred while getting blogs'
-			}
+			message: 'Some error occurred while getting categories'
 		});
 	}
 };
 // DELETE a single category
 // api/delete-category/:id
 exports.deleteCategory = async (req, res) => {
-	//check if the user has permission to proceed
-	if (!req.user.privileges.includes('ADMIN') && !req.user.privileges.includes('CHEF'))
-		return res.status(403).json({
-			result: 'Fail',
-			message: {
-				en: 'Unauthorized'
-			}
-		});
-
 	const id = req.params.id;
 	try {
 		const num = await Category.destroy({
@@ -142,27 +116,18 @@ exports.deleteCategory = async (req, res) => {
 		if (num == 1) {
 			return res.json({
 				result: 'Success',
-				message: {
-					en: 'category was deleted successfully!'
-				}
+				message: 'category was deleted successfully!'
 			});
 		} else {
 			return res.status(404).json({
 				result: 'Fail',
-				message: {
-					en: `Cannot delete category with id=${id}. Maybe category was not found!`
-				}
+				message: `Cannot delete category with id=${id}. Maybe category was not found!`
 			});
 		}
 	} catch (error) {
-		let message;
-		if (error.message.includes('Cannot delete or update a parent row'))
-			message = 'Cannot delete or update a parent row';
 		res.status(500).json({
 			result: 'Fail',
-			message: {
-				en: message || 'Some error occurred while deleteing a category'
-			}
+			message: 'Some error occurred while deleteing a category'
 		});
 	}
 };
