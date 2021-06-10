@@ -1,4 +1,5 @@
 module.exports = (app) => {
+	const passport = require('passport');
 	const store = require('../controllers/store.controller');
 	var router = require('./router');
 
