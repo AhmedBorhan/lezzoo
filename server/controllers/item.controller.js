@@ -1,7 +1,9 @@
 const db = require('../models');
 const Item = db.item;
 const Category = db.category;
+const Store = db.store;
 const Op = db.Sequelize.Op;
+var fs = require('fs');
 
 // POST create an item
 // api/create-item & update-item/:id
@@ -59,18 +61,19 @@ exports.getAllItems = async (req, res) => {
 	var categoryCondition = category  && category > 0 ? { category_id: category } : null;
 
 	try {
-		let data = await Item.findAll({
+		const { count, rows } = await Item.findAndCountAll({
 			where: {
 				[Op.and]: [ searchCondition, stateCondition, categoryCondition ]
 			},
 			include: [
-				{ model: Category, as: 'category', attributes: [ 'name' ] }
+				{ model: Category, as: 'category', attributes: [ 'name' ] },
+				{ model: Store, as: 'store', attributes: [ 'name' ] }
 			],
 			offset: offset ? parseInt(offset) : 0,
 			limit: limit ? parseInt(limit) : 100,
 			order: [ [ 'createdAt', 'DESC' ] ]
 		});
-		if (!data) {
+		if (!rows) {
 			return res.status(404).json({
 				result: 'Fail',
 				message: 'there is no data'
@@ -78,7 +81,8 @@ exports.getAllItems = async (req, res) => {
 		}
 		return res.json({
 			result: 'Success',
-			data: data
+			data: rows,
+			count
 		});
 	} catch (error) {
 		console.log('error :>> ', error);
@@ -103,7 +107,8 @@ exports.getItem = async (req, res) => {
 				[Op.and]: [{ item_id: id }]
 			},
 			include:[
-				{ model: Category, as: 'category', attributes: [ 'name' ] }
+				{ model: Category, as: 'category', attributes: [ 'name' ] },
+				{ model: Store, as: 'store', attributes: [ 'name' ] }
 			]
 		});
 		if (!item) {

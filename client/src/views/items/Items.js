@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Button from '@material-ui/core/Button';
@@ -6,11 +7,19 @@ import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
+import Chip from '@material-ui/core/Chip';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
+import StoreMallDirectoryIcon from '@material-ui/icons/StoreMallDirectory';
 import { makeStyles } from '@material-ui/core/styles';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 import Container from '@material-ui/core/Container';
-import { fetchItems } from '../../actions/itemActoin';
+import { fetchItems, deleteItem } from '../../actions/itemActoin';
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const useStyles = makeStyles((theme) => ({
 	icon: {
@@ -49,40 +58,65 @@ const initFilter = {
 };
 export default function Items() {
 	const classes = useStyles();
-	const [ rows, setRows ] = useState([]);
+	const dispatch = useDispatch();
+	const { items, count } = useSelector((state) => state.item);
 	const [ filter, setFilter ] = useState(initFilter);
-	const [ page, setPage ] = useState({ on: 0, count: 0 });
-
+	const [ snack, setSnack ] = React.useState({
+		open: false,
+		severity: '',
+		message: ''
+	});
 	//Request actions
 	const fetchAction = async () => {
-		const { data, count } = await fetchItems(filter);
-		let newRows = [];
-		data.forEach((element) => {
-			newRows = [ ...newRows, { name: element.name, logo: element.logo } ];
-		});
-		setRows([ ...rows, ...newRows ]);
-    setPage({ ...page, count });
+		try {
+			await dispatch(fetchItems({ ...filter, offset: items.length }));
+		} catch (error) {
+			console.log('error :>> ', error);
+			let message = 'Could not fetch data';
+			if (error.response) message = error.response.data.message;
+			handleClick('error', message);
+		}
+	};
+
+	const deleteItemAction = async (id) => {
+		try {
+			await dispatch(deleteItem(id));
+			let message = 'Item deleted successfully';
+			handleClick('info', message);
+		} catch (error) {
+			let message = 'Could not sumbit action';
+			if (error.response) message = error.response.data.message;
+			handleClick('error', message);
+		}
 	};
 
 	const loadMore = async () => {
-    console.log('hasssssmore :>> ');
-		const newOffset = rows.length;
+		const newOffset = items.length;
 		setFilter({ ...filter, offset: newOffset });
-		await fetchAction({ offset: newOffset }, true);
+		await fetchAction();
 	};
-	const handleChangePage = async (event, newPage) => {
-    console.log('change page')
-		if (page.count > rows.length) await loadMore();
-		setPage({ ...page, on: newPage });
+	const handleClick = (severity, message) => {
+		setSnack({ ...snack, severity, message, open: true });
+	};
+	const handleClose = (event, reason) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		setSnack({ ...snack, open: false });
 	};
 
 	useEffect(() => {
-		fetchAction();
+		if (count === 0) fetchAction();
 	}, []);
 	return (
 		<React.Fragment>
-			<>
+			<div>
 				<div>
+					<Snackbar open={snack.open} autoHideDuration={3000} onClose={handleClose}>
+						<Alert onClose={handleClose} severity={snack.severity}>
+							{snack.message}
+						</Alert>
+					</Snackbar>
 					<Container maxWidth="sm">
 						<Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
 							items
@@ -107,40 +141,40 @@ export default function Items() {
 					</Container>
 				</div>
 				<Container className={classes.cardGrid} maxWidth="md">
-          	<InfiniteScroll
-							dataLength={rows.length}
-							next={handleChangePage}
-							hasMore={rows.length < page.count}
-							loader={<h4>Loading...</h4>}
-						>
-					<Grid container>
-							{rows.map((row, index) => (
+					<InfiniteScroll
+						dataLength={items.length}
+						next={loadMore}
+						hasMore={count > items.length}
+						loader={<h4>Loading...</h4>}
+						className={'hideOverflow'}
+					>
+						<Grid container spacing={4}>
+							{items.map((row, index) => (
 								<Grid item key={index} xs={12} sm={6} md={4}>
 									<Card className={classes.card}>
-										<CardMedia className={classes.cardMedia} image={`api/files/images/${row.logo}`} title={row.name} />
+										<CardMedia className={classes.cardMedia} image={`api/files/images/${row.image}`} title={row.name} />
 										<CardContent className={classes.cardContent}>
 											<Typography gutterBottom variant="h5" component="h2">
 												{row.name}
 											</Typography>
-											{/* <Typography>
-                      A description about the item if needed
-                    </Typography> */}
+											<Typography>{row.price}$</Typography>
+											<Typography>
+												{row.category.name} from{' '}
+												<Chip size="small" label={row.store.name} color="primary" icon={<StoreMallDirectoryIcon />} />
+											</Typography>
 										</CardContent>
 										<CardActions>
-											<Button to={'/items'} size="small">
-												View
-											</Button>
-											<Button size="small" color="secondary">
+											<Button onClick={() => deleteItemAction(row.item_id)} size="small" color="secondary">
 												Delete
 											</Button>
 										</CardActions>
 									</Card>
 								</Grid>
 							))}
-					</Grid>
-          </InfiniteScroll>
+						</Grid>
+					</InfiniteScroll>
 				</Container>
-			</>
+			</div>
 			{/* Footer */}
 			<footer className={classes.footer}>
 				<Typography variant="h6" align="center" gutterBottom>
