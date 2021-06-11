@@ -9,7 +9,14 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
 import { fetchOneStore } from '../../actions/storeAction';
+import { deleteCategory } from '../../actions/categoryAction';
+
+function Alert(props) {
+	return <MuiAlert elevation={6} variant="filled" {...props} />;
+}
 
 const useStyles = makeStyles((theme) => ({
 	icon: {
@@ -46,26 +53,60 @@ const useStyles = makeStyles((theme) => ({
 export default function Categories(props) {
 	const classes = useStyles();
 	const [ rows, setRows ] = useState([]);
-	const [ store, setStore ] = useState({name: ''});
-	const storeId =  props.match.params.id
+	const [ store, setStore ] = useState({ name: '', id:'' });
+	const [ snack, setSnack ] = React.useState({
+		open: false,
+		severity: '',
+		message: ''
+	});
+	const storeName = props.match.params.store;
 	//Request actions
 	const fetchAction = async () => {
-		const { store } = await fetchOneStore(storeId);
+		const { store } = await fetchOneStore(storeName);
 		let newRows = [];
 		store.categories.forEach((element) => {
-			newRows = [ ...newRows, { name: element.name, image: element.image } ];
+			newRows = [ ...newRows, { name: element.name, image: element.image, id: element.category_id } ];
 		});
-		setStore({name: store.name})
+		setStore({ name: store.name, id: store.store_id });
 		setRows([ ...rows, ...newRows ]);
+	};
+
+	const deleteCategoryAction = async (id) => {
+		try {
+			await deleteCategory(id);
+			let message = 'Store deleted successfully';
+			const newRows = rows.filter((row) => row.id !== id);
+			setRows(newRows);
+			handleClick('info', message);
+		} catch (error) {
+			let message = 'Could not sumbit action';
+			if (error.response) message = error.response.data.message;
+			handleClick('error', message);
+		}
 	};
 
 	useEffect(() => {
 		fetchAction();
 	}, []);
+
+	const handleClick = (severity, message) => {
+		setSnack({ ...snack, severity, message, open: true });
+	};
+	const handleClose = (event, reason) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		setSnack({ ...snack, open: false });
+	};
 	return (
 		<React.Fragment>
-			<>
+			<div>
 				<div>
+					<Snackbar open={snack.open} autoHideDuration={3000} onClose={handleClose}>
+						<Alert onClose={handleClose} severity={snack.severity}>
+							{snack.message}
+						</Alert>
+					</Snackbar>
 					<Container maxWidth="sm">
 						<Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
 							{store.name}
@@ -77,7 +118,7 @@ export default function Categories(props) {
 							<Grid container spacing={2} justify="center">
 								<Grid item>
 									<Button variant="contained" color="primary">
-										<Link to="/add-category">Add new category</Link>
+										<Link to={`/add-category?storeId=${store.id}`}>Add new category</Link>
 									</Button>
 								</Grid>
 								<Grid item>
@@ -107,7 +148,7 @@ export default function Categories(props) {
 										<Button to={'/items'} size="small">
 											View
 										</Button>
-										<Button size="small" color="secondary">
+										<Button onClick={() => deleteCategoryAction(row.id)} size="small" color="secondary">
 											Delete
 										</Button>
 									</CardActions>
@@ -116,7 +157,7 @@ export default function Categories(props) {
 						))}
 					</Grid>
 				</Container>
-			</>
+			</div>
 			{/* Footer */}
 			<footer className={classes.footer}>
 				<Typography variant="h6" align="center" gutterBottom>

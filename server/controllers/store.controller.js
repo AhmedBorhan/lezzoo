@@ -116,19 +116,19 @@ exports.getAllIStore = async (req, res) => {
 	}
 };
 
-// Public
-// api/store/all-stores/:id
+// @PRIVATE, getting one store with it's categories
+// @GET api/store/all-stores/:name
 exports.getStore = async (req, res) => {
-	const id = parseInt(req.params.id);
-	if (!id || typeof id != 'number')
+	const name = req.params.name;
+	if (!name || typeof name != 'string')
 		res.status(400).json({
 			result: 'Fail',
-			message: 'There is something wrong with the store id'
+			message: 'There is something wrong with the store name'
 		});
 	try {
 		let store = await Store.findOne({
 			where: {
-				[Op.and]: [ { store_id: id } ]
+				[Op.and]: [ { name } ]
 			},
 			include: [ { model: Category, as: 'categories' } ]
 		});

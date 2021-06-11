@@ -1,5 +1,6 @@
 const db = require('../models');
 const Category = db.category;
+var fs = require('fs');
 
 // PRIVATE ADMIN
 // api/create-category
@@ -68,6 +69,7 @@ exports.createCategory = async (req, res) => {
 			});
 		}
 	} catch (error) {
+		console.log('error :>> ', error);
 		res.status(500).send({
 			message: 'Some error occurred while creating category.'
 		});

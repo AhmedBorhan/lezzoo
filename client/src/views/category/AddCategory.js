@@ -36,10 +36,16 @@ const useStyles = makeStyles((theme) => ({
 	}
 }));
 
+//Used to get storeId param from the URL query
+const params = new URLSearchParams(window.location.search);
+
 const initState = {
+	store:  parseInt(params.get('storeId')),
 	name: '',
 	image: ''
 };
+
+
 
 export default function Checkout() {
 	const classes = useStyles();
@@ -50,7 +56,6 @@ export default function Checkout() {
 		severity: '',
 		message: ''
 	});
-
 	const createCategoryAction = async () => {
 		try {
 			await createCategory(category);

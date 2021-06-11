@@ -36,8 +36,16 @@ const dashboardRoutes = [
 		layout: '/nav',
 		privilage: 'admin'
 	},
+		{
+		path: '/items/:store/:category',
+		name: 'Items',
+		icon: ShoppingCartIcon,
+		component: ItemsView,
+		layout: '/',
+		privilage: 'admin'
+	},
 	{
-		path: '/store/:id',
+		path: '/store/:store',
 		name: 'Store categories',
 		component: CategoryView,
 		layout: '/',
