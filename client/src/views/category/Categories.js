@@ -146,7 +146,9 @@ export default function Categories(props) {
 									</CardContent>
 									<CardActions>
 										<Button to={'/items'} size="small">
-											View
+											<Link to={`/items/${store.id}/${row.id}`} size="small">
+												View
+											</Link>
 										</Button>
 										<Button onClick={() => deleteCategoryAction(row.id)} size="small" color="secondary">
 											Delete

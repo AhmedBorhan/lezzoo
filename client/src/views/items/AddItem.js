@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
@@ -14,6 +15,9 @@ import { createItem } from '../../actions/itemActoin';
 function Alert(props) {
 	return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
+
+//Used to get storeId param from the URL query
+const params = new URLSearchParams(window.location.search);
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
@@ -37,14 +41,17 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const initState = {
+	category: parseInt(params.get('category')),
+	store: parseInt(params.get('store')),
 	name: '',
 	image: '',
-	price: '',
+	price: ''
 };
 
 export default function Checkout() {
 	const classes = useStyles();
 	const history = useHistory();
+	const dispatch = useDispatch();
 	const [ item, setItem ] = useState(initState);
 	const [ snack, setSnack ] = React.useState({
 		open: false,
@@ -54,12 +61,12 @@ export default function Checkout() {
 
 	const createItemAction = async () => {
 		try {
-			await createItem(item);
-			history.push('/');
+			await dispatch(createItem({...item}));
+			history.goBack()
 		} catch (error) {
-			let message = 'Could not sumbit action'
-      if (error.response) message = error.response.data.message
-      handleClick('error', message);
+			let message = 'Could not sumbit action';
+			if (error.response) message = error.response.data.message;
+			handleClick('error', message);
 		}
 	};
 

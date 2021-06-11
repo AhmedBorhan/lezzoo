@@ -10,23 +10,45 @@ var fs = require('fs');
 exports.createItem = async (req, res) => {
 	const {
 		category,
+		store,
     price,
 		state,
-		image
+		image,
+		name,
+		id
 	} = req.body;
 
 	try {
 		// Create item
 		const newItem = {
 			category_id: category,
+			store_id: store,
 			price: price,
 			image,
 			state,
+			name,
 		};
 		console.log(`newItem`, newItem);
 		// If there is id, that means the item already exist so we update it, else we create a new one
 		if (!id) {
 			const data = await Item.create(newItem);
+			/** 
+			 * copy the uploaded file from temp directory to images directory.
+			 * then remove the image from temp.
+			**/
+			var target_path = `uploads/images/` + image;
+			var tmp_path = `uploads/temp/` + image;
+			console.log('tmp_path :>> ', tmp_path);
+			var src = fs.createReadStream(tmp_path);
+			var destPath = fs.createWriteStream(target_path);
+			src.pipe(destPath);
+			src.on('error', (err) => {
+				// log error to error log file
+				console.log('err', err);
+			});
+			// Remove image from temp directory
+			fs.unlinkSync(tmp_path);
+
 			return res.json({
 				result: 'Success',
 				message: 'Item created successfuly',
@@ -52,18 +74,19 @@ exports.createItem = async (req, res) => {
 // GET get all items
 // api/all-item
 exports.getAllItems = async (req, res) => {
-	const { search, state, category, limit, offset } = req.query;
-
+	const { search, store, category, limit, offset } = req.query;
+	console.log('category :>> ', category);
+	console.log('store :>> ', store);
 	var searchCondition = search
 		? { [Op.or]: [ { title: { [Op.like]: `%${search}%` } }, { tags: { [Op.like]: `%${search}%` } } ] }
 		: null;
-	var stateCondition = state != undefined ? { state } : null;
 	var categoryCondition = category  && category > 0 ? { category_id: category } : null;
+	var storeCondition = store  && store > 0 ? { store_id: store } : null;
 
 	try {
 		const { count, rows } = await Item.findAndCountAll({
 			where: {
-				[Op.and]: [ searchCondition, stateCondition, categoryCondition ]
+				[Op.and]: [ searchCondition, storeCondition, categoryCondition ]
 			},
 			include: [
 				{ model: Category, as: 'category', attributes: [ 'name' ] },

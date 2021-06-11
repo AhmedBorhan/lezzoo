@@ -1,7 +1,26 @@
 import axios from 'axios';
 import { ADD_ITEM, GET_ITEMS, GET_MORE_ITEMS, ITEM_LOADING, DELETE_ITEM } from './actionType';
 
-export const fetchItems = (data) => async (dispatch) => {
+/*
+ we use this function if we do not want to hold the data in reducers
+ case: category items
+*/
+export const fetchItems = async(data) => {
+	try {
+		const res = await axios.get('/api/item/all-item', {
+			params: data
+		});
+		return res.data
+	} catch (error) {
+		throw error;
+	}
+};
+
+/*
+ we use this function if we need to hold the data in reducer
+ case: items page
+*/
+export const fetchItemsDispatch = (data) => async (dispatch) => {
 	try {
 		const res = await axios.get('/api/item/all-item', {
 			params: data
@@ -18,7 +37,7 @@ export const fetchItems = (data) => async (dispatch) => {
 	}
 };
 
-export const createItem = async (data) => async (dispatch) => {
+export const createItem = (data) => async (dispatch) => {
 	try {
 		const res = await axios.post('/api/item/create-item', data);
 		dispatch(addItem(res.data));
@@ -27,7 +46,7 @@ export const createItem = async (data) => async (dispatch) => {
 	}
 };
 
-export const deleteItem = async (id) => async (dispatch) =>{
+export const deleteItem = (id) => async (dispatch) =>{
 	try {
 		await axios.delete(`/api/item/delete-item/${id}`);
 		dispatch(removeItem(id));

@@ -164,7 +164,7 @@ export default function Stores() {
                     </Typography> */}
 										</CardContent>
 										<CardActions>
-											<Link to={`/store/${row.store_id}`} size="small">
+											<Link to={`/store/${row.name}`} size="small">
 												View
 											</Link>
 											<Button onClick={() => deleteStoreAction(row.store_id)} size="small" color="secondary">

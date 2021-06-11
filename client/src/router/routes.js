@@ -7,6 +7,7 @@ import StoreView from '../views/store/Stores';
 import AddStore from '../views/store/AddStore';
 
 import ItemsView from '../views/items/Items';
+import CategoryItems from '../views/items/CategoryItems';
 import AddItem from '../views/items/AddItem';
 
 import CategoryView from '../views/category/Categories';
@@ -40,7 +41,7 @@ const dashboardRoutes = [
 		path: '/items/:store/:category',
 		name: 'Items',
 		icon: ShoppingCartIcon,
-		component: ItemsView,
+		component: CategoryItems,
 		layout: '/',
 		privilage: 'admin'
 	},

@@ -59,7 +59,7 @@ export default function Checkout() {
 	const createCategoryAction = async () => {
 		try {
 			await createCategory(category);
-			history.push('/');
+			history.goBack();
 		} catch (error) {
 			let message = 'Could not sumbit action'
       if (error.response) message = error.response.data.message

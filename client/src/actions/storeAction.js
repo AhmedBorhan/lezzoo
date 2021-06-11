@@ -2,7 +2,6 @@ import axios from 'axios';
 import { ADD_STORE, GET_STORES, GET_MORE_STORES, STORE_LOADING, DELETE_STORE } from './actionType';
 
 export const fetchStores = (data) => async (dispatch) => {
-	console.log("fetch1")
 	dispatch(setLoading());
 	try {
 		const res = await axios.get('/api/store/all-store', {
@@ -24,7 +23,6 @@ export const fetchOneStore = async (id, data) => {
 		});
 		return res.data;
 	} catch (error) {
-		console.log('there is an error', error);
 		throw error;
 	}
 };
@@ -32,7 +30,7 @@ export const fetchOneStore = async (id, data) => {
 export const createStore = (data) => async (dispatch) => {
 	try {
 		const res = await axios.post('/api/store/create-store', data);
-		dispatch(removeStore(res.data));
+		dispatch(addStore(res.data));
 	} catch (error) {
 		throw error;
 	}
@@ -51,7 +49,6 @@ export const deleteStore = (id) => async (dispatch) => {
 
 // Set stores & stores count
 export const getStores = (data) => {
-	console.log('gettt')
 	return {
 		type: GET_STORES,
 		data

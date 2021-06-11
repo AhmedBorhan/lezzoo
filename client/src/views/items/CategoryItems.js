@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Button from '@material-ui/core/Button';
@@ -15,7 +15,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import Container from '@material-ui/core/Container';
-import { fetchItemsDispatch, deleteItem } from '../../actions/itemActoin';
+import { fetchItems, deleteItem } from '../../actions/itemActoin';
 
 function Alert(props) {
 	return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -54,12 +54,21 @@ const useStyles = makeStyles((theme) => ({
 }));
 const initFilter = {
 	offset: 0,
-	limit: 9
+	limit: 9,
+	category: null,
+	store: null
 };
-export default function Items() {
+export default function Items(props) {
 	const classes = useStyles();
 	const dispatch = useDispatch();
-	const { items, count } = useSelector((state) => state.item);
+	/*
+		if there is category params, it means this is category items and not all the items page 
+		so we have to get only this category items, and we do not need to dispatch it cause we won't put it in reducer
+	*/
+	const storeId = props.match.params.store;
+	const categoryId = props.match.params.category;
+	const [ items, setItems ] = useState([]);
+	const [ count, setCount ] = useState(0);
 	const [ filter, setFilter ] = useState(initFilter);
 	const [ snack, setSnack ] = React.useState({
 		open: false,
@@ -69,7 +78,9 @@ export default function Items() {
 
 	const fetchAction = async () => {
 		try {
-			await dispatch(fetchItemsDispatch({ ...filter, offset: items.length }));
+			const { data, count } = await fetchItems({ ...initFilter, store: storeId, category: categoryId });
+			setItems([ ...items, ...data ]);
+			setCount(count);
 		} catch (error) {
 			let message = 'Could not fetch data';
 			if (error.response) message = error.response.data.message;
@@ -81,8 +92,11 @@ export default function Items() {
 		try {
 			await dispatch(deleteItem(id));
 			let message = 'Item deleted successfully';
+			const newRows = items.filter((row) => row.item_id !== id);
+			setItems(newRows);
 			handleClick('info', message);
 		} catch (error) {
+			console.log('error :>> ', error);
 			let message = 'Could not sumbit action';
 			if (error.response) message = error.response.data.message;
 			handleClick('error', message);
@@ -123,6 +137,20 @@ export default function Items() {
 						<Typography variant="h5" align="center" color="textSecondary" paragraph>
 							Here you can see all the items in the system
 						</Typography>
+						<div className={classes.heroButtons}>
+							<Grid container spacing={2} justify="center">
+								<Grid item>
+									<Button variant="contained" color="primary">
+										<Link to={`/add-item?store=${storeId}&category=${categoryId}`}>Add new item</Link>
+									</Button>
+								</Grid>
+								<Grid item>
+									<Button variant="outlined" color="primary">
+										Secondary action
+									</Button>
+								</Grid>
+							</Grid>
+						</div>
 					</Container>
 				</div>
 				<Container className={classes.cardGrid} maxWidth="md">
