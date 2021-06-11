@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
@@ -42,8 +43,9 @@ const initState = {
 };
 
 export default function Checkout() {
-	const classes = useStyles();
 	const history = useHistory();
+	const classes = useStyles();	
+	const dispatch = useDispatch();
 	const [ store, setStore ] = useState(initState);
 	const [ snack, setSnack ] = React.useState({
 		open: false,
@@ -53,7 +55,7 @@ export default function Checkout() {
 
 	const createStoreAction = async () => {
 		try {
-			await createStore(store);
+			await dispatch(createStore(store));
 			history.push('/');
 		} catch (error) {
 			let message = 'Could not sumbit action'

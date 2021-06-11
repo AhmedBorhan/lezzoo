@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Button from '@material-ui/core/Button';
@@ -55,7 +56,8 @@ const initFilter = {
 };
 export default function Stores() {
 	const classes = useStyles();
-	const [ rows, setRows ] = useState([]);
+	const dispatch = useDispatch();
+	const { stores, count } = useSelector((state) => state.store);
 	const [ filter, setFilter ] = useState(initFilter);
 	const [ page, setPage ] = useState({ on: 0, count: 0 });
 	const [ snack, setSnack ] = React.useState({
@@ -65,22 +67,13 @@ export default function Stores() {
 	});
 	//Request actions
 	const fetchAction = async () => {
-		const { data, count } = await fetchStores(filter);
-		let newRows = [];
-		data.forEach((element) => {
-			newRows = [ ...newRows, { name: element.name, logo: element.logo, id: element.store_id } ];
-		});
-		setRows([ ...rows, ...newRows ]);
-		setPage({ ...page, count });
+		await dispatch(fetchStores(filter));
 	};
 
 	const deleteStoreAction = async (id) => {
-		console.log('id :>> ', id);
 		try {
-			await deleteStore(id);
+			await dispatch(deleteStore(id));
 			let message = 'Store deleted successfully';
-			const newRows = rows.filter(row => row.id !== id)
-			setRows(newRows)
 			handleClick('info', message);
 		} catch (error) {
 			let message = 'Could not sumbit action';
@@ -90,17 +83,18 @@ export default function Stores() {
 	};
 
 	const loadMore = async () => {
-		const newOffset = rows.length;
+		const newOffset = stores.length;
 		setFilter({ ...filter, offset: newOffset });
 		await fetchAction({ offset: newOffset }, true);
 	};
 	const handleChangePage = async (event, newPage) => {
-		if (page.count > rows.length) await loadMore();
+		if (page.count > stores.length) await loadMore();
 		setPage({ ...page, on: newPage });
 	};
 
 	useEffect(() => {
-		fetchAction();
+		// if there is no store, then call the API to get the stores
+		if (count === 0) fetchAction();
 	}, []);
 
 	const handleClick = (severity, message) => {
@@ -146,13 +140,13 @@ export default function Stores() {
 				</div>
 				<Container className={classes.cardGrid} maxWidth="md">
 					<InfiniteScroll
-						dataLength={rows.length}
+						dataLength={stores.length}
 						next={handleChangePage}
-						hasMore={rows.length < page.count}
+						hasMore={stores.length < count}
 						loader={<h4>Loading...</h4>}
 					>
-						<Grid container >
-							{rows.map((row, index) => (
+						<Grid container>
+							{stores.map((row, index) => (
 								<Grid item key={index} xs={12} sm={6} md={4}>
 									<Card className={classes.card}>
 										<CardMedia className={classes.cardMedia} image={`api/files/images/${row.logo}`} title={row.name} />
@@ -165,10 +159,10 @@ export default function Stores() {
                     </Typography> */}
 										</CardContent>
 										<CardActions>
-											<Link to={`/store/${row.id}`} size="small">
+											<Link to={`/store/${row.store_id}`} size="small">
 												View
 											</Link>
-											<Button onClick={() =>deleteStoreAction(row.id)} size="small" color="secondary">
+											<Button onClick={() => deleteStoreAction(row.store_id)} size="small" color="secondary">
 												Delete
 											</Button>
 										</CardActions>
