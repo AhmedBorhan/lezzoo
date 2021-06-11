@@ -2,12 +2,16 @@ import axios from 'axios';
 import { ADD_STORE, GET_STORES, GET_MORE_STORES, STORE_LOADING, DELETE_STORE } from './actionType';
 
 export const fetchStores = (data) => async (dispatch) => {
+	console.log("fetch1")
 	dispatch(setLoading());
 	try {
 		const res = await axios.get('/api/store/all-store', {
 			params: data
 		});
-		dispatch(getStores(res.data));
+		// SET STORES, If "offset" is zero set the stores
+		if(data.offset === 0) dispatch(getStores(res.data));
+		// ADD TO STORES, Else add more stores
+		else dispatch(addMoreStore(res.data));
 	} catch (error) {
 		throw error;
 	}
@@ -47,6 +51,7 @@ export const deleteStore = (id) => async (dispatch) => {
 
 // Set stores & stores count
 export const getStores = (data) => {
+	console.log('gettt')
 	return {
 		type: GET_STORES,
 		data
@@ -57,6 +62,14 @@ export const getStores = (data) => {
 export const addStore = (data) => {
 	return {
 		type: ADD_STORE,
+		data: data
+	};
+};
+
+// Add more stores
+export const addMoreStore = (data) => {
+	return {
+		type: GET_MORE_STORES,
 		data: data
 	};
 };

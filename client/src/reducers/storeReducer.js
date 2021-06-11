@@ -23,7 +23,7 @@ const StoreReducer = (state = initialState, action) => {
 		case GET_MORE_STORES:
 			return {
 				...state,
-				stores: state.stores.concat(action.data),
+				stores: state.stores.concat(action.data.data),
 				loading: false
 			};
 		case ADD_STORE:

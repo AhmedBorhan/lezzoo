@@ -23,6 +23,9 @@ const useStyles = makeStyles((theme) => ({
 	icon: {
 		marginRight: theme.spacing(2)
 	},
+	content: {
+		overflow: 'hidden'
+	},
 	heroContent: {
 		backgroundColor: theme.palette.background.paper,
 		padding: theme.spacing(8, 0, 6)
@@ -59,7 +62,6 @@ export default function Stores() {
 	const dispatch = useDispatch();
 	const { stores, count } = useSelector((state) => state.store);
 	const [ filter, setFilter ] = useState(initFilter);
-	const [ page, setPage ] = useState({ on: 0, count: 0 });
 	const [ snack, setSnack ] = React.useState({
 		open: false,
 		severity: '',
@@ -67,7 +69,13 @@ export default function Stores() {
 	});
 	//Request actions
 	const fetchAction = async () => {
-		await dispatch(fetchStores(filter));
+		try {
+			await dispatch(fetchStores({...filter, offset : stores.length}));
+		} catch (error) {
+			let message = 'Could not fetch data';
+			if (error.response) message = error.response.data.message;
+			handleClick('error', message);
+		}
 	};
 
 	const deleteStoreAction = async (id) => {
@@ -86,10 +94,6 @@ export default function Stores() {
 		const newOffset = stores.length;
 		setFilter({ ...filter, offset: newOffset });
 		await fetchAction({ offset: newOffset }, true);
-	};
-	const handleChangePage = async (event, newPage) => {
-		if (page.count > stores.length) await loadMore();
-		setPage({ ...page, on: newPage });
 	};
 
 	useEffect(() => {
@@ -141,11 +145,12 @@ export default function Stores() {
 				<Container className={classes.cardGrid} maxWidth="md">
 					<InfiniteScroll
 						dataLength={stores.length}
-						next={handleChangePage}
-						hasMore={stores.length < count}
+						next={loadMore}
+						hasMore={count > stores.length}
 						loader={<h4>Loading...</h4>}
+						className={'hideOverflow'}
 					>
-						<Grid container>
+						<Grid container spacing={4}>
 							{stores.map((row, index) => (
 								<Grid item key={index} xs={12} sm={6} md={4}>
 									<Card className={classes.card}>
