@@ -16,8 +16,6 @@ function Alert(props) {
 	return <MuiAlert elevation={6} variant="filled" {...props} />;
 }
 
-//Used to get storeId param from the URL query
-const params = new URLSearchParams(window.location.search);
 
 const useStyles = makeStyles((theme) => ({
 	paper: {
@@ -41,8 +39,8 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const initState = {
-	category: parseInt(params.get('category')),
-	store: parseInt(params.get('store')),
+	category: '',
+	store: '',
 	name: '',
 	image: '',
 	price: ''
@@ -52,8 +50,10 @@ export default function Checkout() {
 	const classes = useStyles();
 	const history = useHistory();
 	const dispatch = useDispatch();
-	const [ item, setItem ] = useState(initState);
-	const [ snack, setSnack ] = React.useState({
+	//Used to get storeId param from the URL query
+	const params = new URLSearchParams(window.location.search);
+	const [item, setItem] = useState(initState);
+	const [snack, setSnack] = React.useState({
 		open: false,
 		severity: '',
 		message: ''
@@ -61,7 +61,7 @@ export default function Checkout() {
 
 	const createItemAction = async () => {
 		try {
-			await dispatch(createItem({...item}));
+			await dispatch(createItem({ ...item, store: parseInt(params.get('store')), category: parseInt(params.get('category')) }));
 			history.goBack()
 		} catch (error) {
 			let message = 'Could not sumbit action';

@@ -36,11 +36,9 @@ const useStyles = makeStyles((theme) => ({
 	}
 }));
 
-//Used to get storeId param from the URL query
-const params = new URLSearchParams(window.location.search);
 
 const initState = {
-	store:  parseInt(params.get('storeId')),
+	store: '',
 	name: '',
 	image: ''
 };
@@ -50,20 +48,22 @@ const initState = {
 export default function Checkout() {
 	const classes = useStyles();
 	const history = useHistory();
-	const [ category, setCategory ] = useState(initState);
-	const [ snack, setSnack ] = React.useState({
+	const [category, setCategory] = useState(initState);
+	//Used to get storeId param from the URL query
+	const params = new URLSearchParams(window.location.search);
+	const [snack, setSnack] = React.useState({
 		open: false,
 		severity: '',
 		message: ''
 	});
 	const createCategoryAction = async () => {
 		try {
-			await createCategory(category);
+			await createCategory({ ...category, store: parseInt(params.get('storeId')) });
 			history.goBack();
 		} catch (error) {
 			let message = 'Could not sumbit action'
-      if (error.response) message = error.response.data.message
-      handleClick('error', message);
+			if (error.response) message = error.response.data.message
+			handleClick('error', message);
 		}
 	};
 
